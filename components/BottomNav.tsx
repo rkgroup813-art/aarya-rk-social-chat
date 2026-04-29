@@ -21,20 +21,20 @@ export default function BottomNav({ currentScreen, onNavigate, isAdmin }: Props)
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border">
-      <div className="flex justify-around items-center py-2 px-4 max-w-lg mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="flex justify-around items-center py-2 px-2 max-w-lg mx-auto">
         {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => onNavigate(item.id)}
-            className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+            className={`flex flex-col items-center min-w-[60px] py-2 px-3 rounded-xl transition-all active:scale-95 ${
               currentScreen === item.id
-                ? "text-primary"
+                ? "text-primary bg-primary/10"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <item.icon className="w-6 h-6" />
-            <span className="text-xs mt-1">{item.label}</span>
+            <item.icon className="w-5 h-5" />
+            <span className="text-[10px] mt-1 font-medium">{item.label}</span>
           </button>
         ))}
       </div>

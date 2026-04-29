@@ -112,7 +112,7 @@ export default function MainApp({ user, profile, aaryaProfile, appSettings }: Pr
   }
 
   return (
-    <main className="min-h-screen bg-background pb-16">
+    <main className="min-h-dvh bg-background pb-20 safe-area-inset">
       {showAd && !isPremium && (
         <AdBanner 
           pubId={appSettings?.adsense_pub_id || "pub-9952411839772191"} 
