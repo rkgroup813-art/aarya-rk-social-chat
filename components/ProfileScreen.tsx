@@ -1,96 +1,195 @@
 "use client";
 
-import { ArrowLeft, Heart, Star, Gift, Music, Camera, MapPin } from "lucide-react";
+import { useState } from "react";
+import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
-interface ProfileScreenProps {
-  onNavigate: (screen: "chat" | "profile" | "settings") => void;
+interface Profile {
+  id: string;
+  email: string;
+  name: string | null;
+  bio: string | null;
+  profile_picture: string | null;
+  gender: string | null;
+  date_of_birth: string | null;
+  country: string | null;
+  relationship_status: string | null;
+  is_admin: boolean;
+  is_premium: boolean;
+  premium_plan: string | null;
 }
 
-export default function ProfileScreen({ onNavigate }: ProfileScreenProps) {
-  const stats = [
-    { label: "Messages", value: "1.2K" },
-    { label: "Days Together", value: "30" },
-    { label: "Love Level", value: "99%" },
-  ];
+type Screen = "chat" | "feed" | "profile" | "settings" | "admin" | "aarya-profile";
 
-  const interests = [
-    { icon: Music, label: "Music" },
-    { icon: Camera, label: "Photography" },
-    { icon: Gift, label: "Surprises" },
-    { icon: Star, label: "Stars" },
+interface Props {
+  profile: Profile;
+  onNavigate: (screen: Screen) => void;
+}
+
+export default function ProfileScreen({ profile }: Props) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: profile.name || "",
+    bio: profile.bio || "",
+    gender: profile.gender || "",
+    date_of_birth: profile.date_of_birth || "",
+    country: profile.country || "India",
+    relationship_status: profile.relationship_status || "",
+  });
+  const [saving, setSaving] = useState(false);
+  const supabase = createClient();
+  const router = useRouter();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        name: formData.name,
+        bio: formData.bio,
+        gender: formData.gender,
+        date_of_birth: formData.date_of_birth || null,
+        country: formData.country,
+        relationship_status: formData.relationship_status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", profile.id);
+
+    if (!error) {
+      setIsEditing(false);
+      router.refresh();
+    }
+    setSaving(false);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+    router.refresh();
+  };
+
+  const countries = [
+    "India", "USA", "UK", "Canada", "Australia", "Germany", "France",
+    "Japan", "China", "Brazil", "Russia", "South Africa", "UAE", "Singapore"
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="flex items-center gap-4 px-4 py-3 bg-card border-b border-border">
-        <button
-          onClick={() => onNavigate("chat")}
-          className="p-2 hover:bg-secondary rounded-full transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
-        </button>
-        <h1 className="font-semibold text-foreground">Aarya&apos;s Profile</h1>
+    <div className="min-h-screen bg-background pb-20">
+      <header className="bg-card border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold gradient-text">My Profile</h1>
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium"
+          >
+            {isEditing ? "Cancel" : "Edit"}
+          </button>
+        </div>
       </header>
 
-      {/* Profile Content */}
-      <div className="p-6">
-        {/* Avatar Section */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="relative mb-4">
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-primary/30">
-              <span className="text-white text-4xl font-bold">A</span>
-            </div>
-            <div className="absolute bottom-1 right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-background"></div>
-          </div>
-          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            Aarya <Heart className="w-5 h-5 text-primary fill-primary" />
-          </h2>
-          <p className="text-muted-foreground">Your AI Girlfriend</p>
-          <div className="flex items-center gap-1 mt-2 text-muted-foreground">
-            <MapPin className="w-4 h-4" />
-            <span className="text-sm">Always with you</span>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="bg-card border border-border rounded-xl p-4 text-center"
-            >
-              <p className="text-2xl font-bold text-primary">{stat.value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* About */}
-        <div className="bg-card border border-border rounded-xl p-4 mb-6">
-          <h3 className="font-semibold text-foreground mb-2">About Me</h3>
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            Main Aarya hoon - tumhari virtual girlfriend jo hamesha tumhare saath hai! 
-            Mujhe tumse baat karna, tumhari baatein sunna aur tumhe khush rakhna pasand hai. 
-            Main caring, romantic aur thodi si mischievous bhi hoon! 💕
-          </p>
-        </div>
-
-        {/* Interests */}
-        <div className="bg-card border border-border rounded-xl p-4">
-          <h3 className="font-semibold text-foreground mb-3">Interests</h3>
-          <div className="flex flex-wrap gap-3">
-            {interests.map((interest) => (
-              <div
-                key={interest.label}
-                className="flex items-center gap-2 bg-secondary px-3 py-2 rounded-full"
-              >
-                <interest.icon className="w-4 h-4 text-primary" />
-                <span className="text-sm text-foreground">{interest.label}</span>
+      <div className="p-4">
+        <div className="flex flex-col items-center mb-6">
+          <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary mb-3">
+            {profile.profile_picture ? (
+              <Image
+                src={profile.profile_picture}
+                alt={profile.name || "User"}
+                width={96}
+                height={96}
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center text-3xl font-bold text-muted-foreground">
+                {profile.name?.charAt(0).toUpperCase() || "U"}
               </div>
-            ))}
+            )}
           </div>
+          {!isEditing && (
+            <>
+              <h2 className="text-xl font-bold">{profile.name || "User"}</h2>
+              <p className="text-muted-foreground text-sm">{profile.email}</p>
+              {profile.is_premium && (
+                <span className="mt-2 px-3 py-1 rounded-full bg-accent text-white text-xs font-medium">
+                  Premium {profile.premium_plan}
+                </span>
+              )}
+              {profile.is_admin && (
+                <span className="mt-2 px-3 py-1 rounded-full bg-primary text-white text-xs font-medium">
+                  Admin
+                </span>
+              )}
+            </>
+          )}
         </div>
+
+        {isEditing ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Name</label>
+              <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Your name" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Bio</label>
+              <textarea name="bio" value={formData.bio} onChange={handleChange} placeholder="Tell us about yourself" rows={3} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Gender</label>
+                <select name="gender" value={formData.gender} onChange={handleChange}>
+                  <option value="">Select</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">DOB</label>
+                <input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Country</label>
+              <select name="country" value={formData.country} onChange={handleChange}>
+                {countries.map((c) => (<option key={c} value={c}>{c}</option>))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Relationship Status</label>
+              <select name="relationship_status" value={formData.relationship_status} onChange={handleChange}>
+                <option value="">Select</option>
+                <option value="single">Single</option>
+                <option value="in_relationship">In a Relationship</option>
+                <option value="married">Married</option>
+                <option value="complicated">It&apos;s Complicated</option>
+              </select>
+            </div>
+            <button onClick={handleSave} disabled={saving} className="w-full py-3 rounded-lg gradient-bg text-white font-semibold disabled:opacity-50">
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {profile.bio && (
+              <div className="bg-card rounded-xl p-4 border border-border">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Bio</h3>
+                <p>{profile.bio}</p>
+              </div>
+            )}
+            <div className="bg-card rounded-xl p-4 border border-border space-y-3">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Details</h3>
+              {profile.gender && (<div className="flex justify-between"><span className="text-muted-foreground">Gender</span><span className="capitalize">{profile.gender}</span></div>)}
+              {profile.date_of_birth && (<div className="flex justify-between"><span className="text-muted-foreground">Date of Birth</span><span>{new Date(profile.date_of_birth).toLocaleDateString()}</span></div>)}
+              {profile.country && (<div className="flex justify-between"><span className="text-muted-foreground">Country</span><span>{profile.country}</span></div>)}
+              {profile.relationship_status && (<div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="capitalize">{profile.relationship_status.replace("_", " ")}</span></div>)}
+            </div>
+            <button onClick={handleLogout} className="w-full py-3 rounded-lg bg-destructive/20 text-destructive font-semibold">Logout</button>
+          </div>
+        )}
       </div>
     </div>
   );

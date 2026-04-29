@@ -1,16 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const poppins = Poppins({ 
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"]
+});
 
 export const metadata: Metadata = {
-  title: "Aarya - AI Chat",
-  description: "Chat with Aarya, your AI girlfriend companion",
+  title: "Aarya RK Social Chat",
+  description: "Chat with Aarya - Your AI companion. Connect with friends, share posts, and explore!",
+  keywords: ["chat", "social", "AI", "Aarya", "friends", "posts"],
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ec4899",
+  themeColor: "#7c3aed",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -24,7 +28,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="bg-background">
-      <body className={inter.className}>{children}</body>
+      <head>
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9952411839772191"
+          crossOrigin="anonymous"
+        />
+      </head>
+      <body className={poppins.className}>{children}</body>
     </html>
   );
 }
